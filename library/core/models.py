@@ -172,6 +172,7 @@ class Student(models.Model):
 
 class Resident(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE,related_name='resident')
+    identification_photo = models.ImageField(upload_to='admin_photos')
     address  = models.CharField(max_length=255)
     phone_number = models.CharField(max_length=15)
     estate = models.CharField(max_length=100,blank=True,null=True)
