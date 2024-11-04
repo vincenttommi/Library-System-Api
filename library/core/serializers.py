@@ -20,31 +20,40 @@ class UserRegisterSerializer(serializers.ModelSerializer):
         extra_kwargs = {'password': {'write_only': True}}
 
     def create(self, validated_data):
+        # Extract role and password
         role = validated_data.pop('role')
         password = validated_data.pop('password')
-        user = User.objects.create_user(role=role, **validated_data)
+        
+        # Separate User data from role-specific data
+        user_data = {
+            "email": validated_data.get('email'),
+            "username": validated_data.get('username'),
+        }
+
+        # Create the User instance
+        user = User.objects.create_user(role=role, **user_data)
         user.set_password(password)
         user.save()
 
-        # Create the extended model based on the role
+        # Role-specific data handling
         if role == 'student':
             Student.objects.create(
                 user=user,
-                school_name=validated_data.get('school_name'),
-                school_registration_number=validated_data.get('school_registration_number'),
-                identification_photo=validated_data.get('identification_photo')
+                school_name=validated_data.pop('school_name', None),
+                school_registration_number=validated_data.pop('school_registration_number', None),
+                identification_photo=validated_data.pop('identification_photo', None)
             )
         elif role == 'resident':
             Resident.objects.create(
                 user=user,
-                address=validated_data.get('address'),
-                phone_number=validated_data.get('phone_number'),
-                estate=validated_data.get('estate')
+                address=validated_data.pop('address', None),
+                phone_number=validated_data.pop('phone_number', None),
+                estate=validated_data.pop('estate', None)
             )
-        elif role == 'ADMIN':
+        elif role == 'admin':
             Admin.objects.create(
                 user=user,
-                identification_photo=validated_data.get('identification_photo')
+                identification_photo=validated_data.pop('identification_photo', None)
             )
         
         return user

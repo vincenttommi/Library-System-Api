@@ -1,14 +1,10 @@
 import random
-from django.core.mail import EmailMessage
-from django.core.mail import BadHeaderError
-from Social import settings
+from django.core.mail import EmailMessage, BadHeaderError
+from django.conf import settings
 from .models import User, OneTimePassword
 
 def generate_otp():
-    otp = "".join([str(random.randint(1, 9)) for _ in range(6)])  # Generate 6-digit OTP
-    return otp
-
-
+    return "".join([str(random.randint(1, 9)) for _ in range(6)])  # Generate 6-digit OTP
 
 def send_code_to_user(email):
     subject = "One-time passcode for Email Verification"
@@ -20,9 +16,9 @@ def send_code_to_user(email):
     except User.DoesNotExist:
         return {"error": "User with this email does not exist."}
 
-    current_site = "Social"
+    current_site = "Library System"
     email_body = (
-        f"Hi {user.first_name},\n\n"
+        f"Hi {user.username},\n\n" 
         f"Thanks for signing up on {current_site}. "
         f"Please verify your email with the following one-time passcode: {otp_code}."
     )
@@ -50,18 +46,3 @@ def send_code_to_user(email):
     except Exception as e:
         print(f"Failed to send email: {e}")
         return {"error": "Failed to send email."}
-    
-
-
-def send_normal_email(data):
-    email=EmailMessage(
-        subject=data['email_subject'],
-        body=data['email_body'],
-       from_email=settings.EMAIL_HOST_USER,
-        to=[data['to_email']]
-    )
-    email.send()
-
-
-
-
