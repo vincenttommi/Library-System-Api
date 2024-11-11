@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from .models import User, Admin, Student, Resident
-from .utilis import send_code_to_user
+from .utils import send_code_to_user
 from django.utils.encoding import smart_str, smart_bytes, force_str
 from django.urls import reverse
 from django.contrib.sites.shortcuts import get_current_site
