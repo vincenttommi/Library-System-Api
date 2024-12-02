@@ -51,6 +51,23 @@ class OneTimePassword(models.Model):
       
     def __str__(self):
         return f"{self.user.first_name}-passcode" 
-       
+
+
+
+
+class Book(models.Model):
+    title  =  models.CharField(max_length=255)
+    author  = models.CharField(max_length=100)
+    genre  = models.CharField(max_length=100)
+    description = models.CharField(max_length=300)
+    availability = models.BooleanField(default=True)
+    created_at =  models.DateTimeField(auto_now_add=True)
+    updated_at =  models.DateTimeField(auto_now=True)
+    
+    
+    def __str__(self):
+        return f"{self.title}by {self.author}"
+     
           
+
           

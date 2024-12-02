@@ -1,5 +1,5 @@
 from rest_framework  import serializers
-from  .models import  User
+from  .models import  User,Book
 from rest_framework.exceptions import AuthenticationFailed
 from  django.urls import reverse
 from django.contrib.auth import authenticate
@@ -55,12 +55,14 @@ class UserRegisterSerializer(serializers.ModelSerializer):
 class LoginSerializer(serializers.Serializer):
     email = serializers.EmailField(max_length=255, min_length=6)
     password = serializers.CharField(max_length=68, write_only=True)
-    full_name = serializers.CharField(max_length=255, read_only=True)
+    name = serializers.CharField(max_length=255, read_only=True)
+    role = serializers.CharField(max_length=68, read_only=True)
     access_token = serializers.CharField(max_length=255, read_only=True)
     refresh_token = serializers.CharField(max_length=255, read_only=True)
+    
 
     class Meta:
-        fields = ['email', 'password', 'name', 'access_token', 'refresh_token']
+        fields = ['email', 'password', 'name', 'role','access_token', 'refresh_token']
 
     def validate(self, attrs):
         email = attrs.get('email')
@@ -85,6 +87,7 @@ class LoginSerializer(serializers.Serializer):
 
         # Add user details to validated attrs
         attrs['name'] = user.name  
+        attrs['role'] = user.role  
         attrs['access_token'] = str(user_token.get('access'))
         attrs['refresh_token'] = str(user_token.get('refresh'))
         attrs['user'] = user 
@@ -178,3 +181,10 @@ class LogoutUserSerializer(serializers.Serializer):
         except TokenError: 
             return self.fail('bad_token') 
     
+    
+    
+class BookSerializer(serializers.Serializer):
+     class Meta:
+         model  = Book
+         fields = ['id','title','author','genre','description','availability','created_at','updated_at']
+         read_only_fields = ['id','created_at','updated_at']    
