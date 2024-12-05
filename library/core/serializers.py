@@ -59,6 +59,7 @@ class LoginSerializer(serializers.Serializer):
     role = serializers.CharField(max_length=68, read_only=True)
     access_token = serializers.CharField(max_length=255, read_only=True)
     refresh_token = serializers.CharField(max_length=255, read_only=True)
+    account_type  = serializers.CharField(max_length=255, read_only=True)
     
 
     class Meta:
@@ -87,11 +88,11 @@ class LoginSerializer(serializers.Serializer):
 
         # Add user details to validated attrs
         attrs['name'] = user.name  
-        attrs['role'] = user.role  
         attrs['access_token'] = str(user_token.get('access'))
         attrs['refresh_token'] = str(user_token.get('refresh'))
-        attrs['user'] = user 
-
+        attrs['account_type'] = user.account_type  
+        
+    
         return attrs
     
     
@@ -183,8 +184,14 @@ class LogoutUserSerializer(serializers.Serializer):
     
     
     
-class BookSerializer(serializers.Serializer):
-     class Meta:
-         model  = Book
-         fields = ['id','title','author','genre','description','availability','created_at','updated_at']
-         read_only_fields = ['id','created_at','updated_at']    
+class BookSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Book
+        fields = ['id', 'title', 'author', 'genre', 'description', 'availability', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'created_at', 'updated_at']
+        extra_kwargs = {
+            "title": {"required": True},
+            "author": {"required": True},
+            "genre": {"required": True},
+            "description": {"required": True},
+        }

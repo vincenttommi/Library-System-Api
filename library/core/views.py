@@ -1,14 +1,15 @@
 from  rest_framework.views import APIView
-from core.serializers import LogoutUserSerializer, PasswordResetRequestSerializer, SetNewPasswordSerializer, UserRegisterSerializer,LoginSerializer
+from core.serializers import BookSerializer, LogoutUserSerializer, PasswordResetRequestSerializer, SetNewPasswordSerializer, UserRegisterSerializer,LoginSerializer
 from core.utils import send_code_to_user
 from rest_framework.response import Response
 from rest_framework import status
-from .models import OneTimePassword,User
+from .models import OneTimePassword,User,Book
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from  django.utils.http import urlsafe_base64_decode
 from django.utils.encoding import smart_str,DjangoUnicodeDecodeError
 from  django.contrib.auth.tokens import PasswordResetTokenGenerator
 from rest_framework.permissions import IsAuthenticated
+
 
 
 class RegisterUser(APIView):
@@ -127,3 +128,42 @@ class SetNewPassword(APIView):
             return Response({"message": "Password reset successful"}, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
+        
+
+class Creating_BookView(APIView):
+    def post(self, request):
+        # Creating an instance of BookSerializer
+        serializer = BookSerializer(data=request.data)
+
+        if serializer.is_valid():
+            validated_data = serializer.validated_data
+            # Checking if a book with the same details already exists
+            existing_book = Book.objects.filter(
+                title=validated_data['title'],
+                author=validated_data['author'],
+                genre=validated_data['genre'],
+                description=validated_data['description']
+            ).exists()
+
+            # If a duplicate exists, return an error
+            if existing_book:
+                return Response(
+                    {"detail": "Book with these details already exists"},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            
+            # Saving the new created Book
+            book = Book.objects.create(**validated_data)
+            return Response(BookSerializer(book).data, status=status.HTTP_201_CREATED)
+
+        # If the data is not valid, return errors
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+             
+class ListingBooks(APIView):
+    def get(self,request):
+       books = Book.objects.all() #Fetching all books records
+       serializer  = BookSerializer(books, many=True)  #serialize the models
+       return Response(serializer.data, status=status.HTTP_200_OK)
+    
+   

@@ -56,10 +56,11 @@ class OneTimePassword(models.Model):
 
 
 class Book(models.Model):
+    # user =  models.ForeignKey(User,on_delete=models.CASCADE)
     title  =  models.CharField(max_length=255)
     author  = models.CharField(max_length=100)
     genre  = models.CharField(max_length=100)
-    description = models.CharField(max_length=300)
+    description = models.TextField()
     availability = models.BooleanField(default=True)
     created_at =  models.DateTimeField(auto_now_add=True)
     updated_at =  models.DateTimeField(auto_now=True)
