@@ -10,6 +10,7 @@ from django.utils.encoding import smart_str,DjangoUnicodeDecodeError
 from  django.contrib.auth.tokens import PasswordResetTokenGenerator
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.permissions import IsAdminUser
+from django.shortcuts import get_object_or_404
 
 
 
@@ -162,11 +163,23 @@ class Creating_BookView(APIView):
         # If the data is not valid, return errors
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-             
-# class ListingBooks(APIView):
-#     def get(request,book_id=None):
-#         if book_id:
-#             #if book id provided, return specific book
-#           book  = get_object_or_404()  
+class ListingBooks(APIView):
+    def get(self, request, id=None):  # Accept 'id' as a path parameter
+        if id:  # Use the path parameter to fetch the book
+            try:
+                book = Book.objects.get(pk=id)
+                serializer = BookSerializer(book)
+                return Response(serializer.data, status=status.HTTP_200_OK)
+            except Book.DoesNotExist:
+                return Response(
+                    {"detail": "Book not found"}, status=status.HTTP_404_NOT_FOUND
+                )
+            except (ValueError, TypeError):
+                return Response(
+                    {"detail": "Invalid book ID format"}, status=status.HTTP_400_BAD_REQUEST
+                )
 
-
+        # If no ID is provided, return the full list
+        books = Book.objects.all()
+        serializer = BookSerializer(books, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
