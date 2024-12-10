@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import Creating_BookView, ListingBooks, LoginUserView, LogoutUserView, PasswordResetConfirm, PasswordResetRequest, RegisterUser, SetNewPassword, VerifyuserEmail
+from .views import Creating_BookView,LoginUserView, LogoutUserView, PasswordResetConfirm, PasswordResetRequest, RegisterUser, SetNewPassword, VerifyuserEmail
 
 
 
@@ -12,7 +12,7 @@ urlpatterns = [
     path('set-new-password/', SetNewPassword.as_view(), name='set-new-password'),
     path('logout/', LogoutUserView.as_view(), name='logout'),
     path('creating-book/', Creating_BookView.as_view(), name='creating'),
-    path('listing-book/', ListingBooks.as_view(), name ='listing'),
+    # path('listing-book/', ListingBooks.as_view(), name ='listing'),
     
   
 ]
