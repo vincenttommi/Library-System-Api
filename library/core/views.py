@@ -212,6 +212,22 @@ class EditBook(APIView):
 
             
         
+class DeleteBook(APIView):
+    
+    permission_classes = [IsAdmin]
+    
+    def delete(self,request, book_id):
+        try:
+            book = Book.objects.get(pk=book_id)
+            book.delete()
+            return Response({"message": "Book deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
+        except Book.DoesNotExist:
+            return Response({"error": "Book not found"}, status=status.HTTP_404_NOT_FOUND)
+
+ 
+        
+        
+    
     
     
     
