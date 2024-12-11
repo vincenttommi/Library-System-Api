@@ -1,5 +1,5 @@
 from rest_framework  import serializers
-from  .models import  User,Book
+from  .models import  Borrowing, User,Book
 from rest_framework.exceptions import AuthenticationFailed
 from  django.urls import reverse
 from django.contrib.auth import authenticate
@@ -195,3 +195,12 @@ class BookSerializer(serializers.ModelSerializer):
             "genre": {"required": True},
             "description": {"required": True},
         }
+
+
+
+class BorrowingSerializer(serializers.ModelSerializer):
+    class Meta:
+        model =  Borrowing
+        fields  = ['book','user','date_borrowed','due_date']
+        
+        

@@ -1,16 +1,20 @@
+from datetime import datetime, timedelta
 from  rest_framework.views import APIView
 from core.serializers import BookSerializer, LogoutUserSerializer, PasswordResetRequestSerializer, SetNewPasswordSerializer, UserRegisterSerializer,LoginSerializer
 from core.utils import send_code_to_user
 from rest_framework.response import Response
 from rest_framework import status
-from .models import OneTimePassword,User,Book
+from .models import Borrowing, OneTimePassword,User,Book
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from  django.utils.http import urlsafe_base64_decode
 from django.utils.encoding import smart_str,DjangoUnicodeDecodeError
 from  django.contrib.auth.tokens import PasswordResetTokenGenerator
 from .permissions import IsAdmin
-
 from django.shortcuts import get_object_or_404
+from  rest_framework.permissions import IsAuthenticated
+from rest_framework import permissions, status
+
+
 
 
 
@@ -224,10 +228,54 @@ class DeleteBook(APIView):
         except Book.DoesNotExist:
             return Response({"error": "Book not found"}, status=status.HTTP_404_NOT_FOUND)
 
- 
+    
+
+
+class BorrowBook(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+    
+    def post(self, request):
+        book_id = request.data.get("bookId")
         
+        # Checking if the book exists
+        try:
+            book = Book.objects.get(id=book_id)
+        except Book.DoesNotExist:
+            return Response({"status": 400, "message": "Book not found."}, status=status.HTTP_400_BAD_REQUEST)
         
-    
-    
-    
-    
+        date_borrowed = datetime.now().date()  # Sets the current date by default
+        
+        # Set the due date (7 days from the borrow date)
+        due_date = date_borrowed + timedelta(days=7)
+        
+        # Creating the borrowing record with dynamic dates
+        borrowing = Borrowing.objects.create(
+            user=request.user,
+            book=book,
+            date_borrowed=date_borrowed,
+            due_date=due_date,
+        )
+        
+        # Return the response
+        response_data = {
+            "status": 201,
+            "message": "Book borrowed successfully",
+            "data": {
+                "book": {
+                    "author": {
+                        "id": book.author.id,
+                        "name": book.author.name,
+                    },
+                    "genre": book.genre,
+                    "description": book.description,
+                    "createdAt": book.created_at,
+                },
+                "dateBorrow": borrowing.date_borrowed,
+                "borrowedBy": {
+                    "id": borrowing.user.id,
+                    "name": borrowing.user.name,
+                }
+            }
+        }
+        
+        return Response(response_data, status=status.HTTP_201_CREATED)

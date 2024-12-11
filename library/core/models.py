@@ -72,4 +72,24 @@ class Book(models.Model):
      
           
 
-          
+
+class BorrowingHistory(models.Model):
+    user  = models.ForeignKey(User, on_delete=models.CASCADE)
+    book  = models.ForeignKey(Book, on_delete=models.CASCADE)
+    borrowed_at = models.DateTimeField(auto_now_add=True)
+    returned  = models.BooleanField(default=False)
+    
+    def __str__(self):
+        return  f"{self.user.username} borrowed {self.book.title}"          
+    
+    
+
+
+class Borrowing(models.Model):
+    user = models.ForeignKey(User,on_delete=models.CASCADE)
+    book = models.ForeignKey(Book, on_delete=models.CASCADE)
+    date_borrowed = models.DateTimeField(auto_now_add=True)
+    due_date = models.DateField(null=True, blank=True)
+
+    def __str__(self):
+        return f"{self.user.name} borrowed {self.book.title}"    
