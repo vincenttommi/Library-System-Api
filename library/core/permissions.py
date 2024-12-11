@@ -1,12 +1,14 @@
-from  rest_framework.permissions import BasePermission
+from rest_framework import permissions
 
 
+class IsAdmin(permissions.BasePermission):
 
-
-class IsAdminUser(BasePermission):
-    """_summary_
-custom permission to allow  only admin users to add books
-    """
     def has_permission(self, request, view):
-        return request.user  and request.user.is_authenticated and  request.user.is_admin
-    
+        if request.user.is_authenticated:
+            return True
+        return False
+
+    def has_object_permission(self, request, view, obj):
+        if obj.author == request.user:
+            return True
+        return False

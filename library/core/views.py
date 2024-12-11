@@ -8,8 +8,8 @@ from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from  django.utils.http import urlsafe_base64_decode
 from django.utils.encoding import smart_str,DjangoUnicodeDecodeError
 from  django.contrib.auth.tokens import PasswordResetTokenGenerator
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.permissions import IsAdminUser
+from .permissions import IsAdmin
+
 from django.shortcuts import get_object_or_404
 
 
@@ -111,7 +111,7 @@ class PasswordResetConfirm(APIView):
 
 class LogoutUserView(APIView):
     serializer_class = LogoutUserSerializer 
-    permission_classes =[IsAuthenticated]
+   
 
     def post(self,request):
         serializer=self.serializer_class(data=request.data)
@@ -134,7 +134,8 @@ class SetNewPassword(APIView):
 
 class Creating_BookView(APIView):
     
-    permission_classes = [IsAdminUser]
+    permission_classes = [IsAdmin]
+
     def post(self, request):
         # Creating an instance of BookSerializer
         serializer = BookSerializer(data=request.data)
@@ -183,3 +184,34 @@ class ListingBooks(APIView):
         books = Book.objects.all()
         serializer = BookSerializer(books, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
+    
+    
+    
+ 
+ 
+class EditBook(APIView):
+
+    permission_classes = [IsAdmin]
+
+    def put(self, request, id):
+        """
+        Edit a book with the given id
+        """
+        book = get_object_or_404(Book, pk=id)
+        serializer = BookSerializer(book, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(
+                {"status": 201, "message": "Book edited successfully", "data": serializer.data},
+                status=status.HTTP_201_CREATED
+            )
+        return Response(
+            {"status": 400, "message": "Validation error", "errors": serializer.errors},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+            
+        
+    
+    
+    

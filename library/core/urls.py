@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import Creating_BookView, ListingBooks,LoginUserView, LogoutUserView, PasswordResetConfirm, PasswordResetRequest, RegisterUser, SetNewPassword, VerifyuserEmail
+from .views import Creating_BookView, EditBook, ListingBooks,LoginUserView, LogoutUserView, PasswordResetConfirm, PasswordResetRequest, RegisterUser, SetNewPassword, VerifyuserEmail
 
 
 
@@ -14,4 +14,5 @@ urlpatterns = [
     path('creating-book/', Creating_BookView.as_view(), name='creating'),
     path('listing-book/', ListingBooks.as_view(), name ='listing'),
     path('book/<int:id>/', ListingBooks.as_view(), name ='retrieve-book'),
+    path('edit/<int:id>/', EditBook.as_view(), name='edit-book'),
 ]
