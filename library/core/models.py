@@ -56,23 +56,39 @@ class OneTimePassword(models.Model):
 
 
 
+# class Book(models.Model):
+#     # user =  models.ForeignKey(User,on_delete=models.CASCADE)
+#     title  =  models.CharField(max_length=255)
+#     author = models.CharField(max_length=255)
+#     genre  = models.CharField(max_length=100)
+#     description = models.TextField()
+#     availability = models.BooleanField(default=True)
+#     created_at =  models.DateTimeField(auto_now_add=True)
+#     updated_at =  models.DateTimeField(auto_now=True)
+    
+    
+#     def __str__(self):
+#         return f"{self.title}by {self.author}"
+     
+
+
+
 class Book(models.Model):
-    # user =  models.ForeignKey(User,on_delete=models.CASCADE)
-    title  =  models.CharField(max_length=255)
-    author  = models.CharField(max_length=100)
-    genre  = models.CharField(max_length=100)
+    title = models.CharField(max_length=255)
+    author = models.CharField(max_length=200)
+    genre = models.CharField(max_length=100)
     description = models.TextField()
     availability = models.BooleanField(default=True)
-    created_at =  models.DateTimeField(auto_now_add=True)
-    updated_at =  models.DateTimeField(auto_now=True)
-    
-    
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
     def __str__(self):
-        return f"{self.title}by {self.author}"
+        return f"{self.title} by {self.author}"
+
+
+    
      
-          
-
-
+        
 class BorrowingHistory(models.Model):
     user  = models.ForeignKey(User, on_delete=models.CASCADE)
     book  = models.ForeignKey(Book, on_delete=models.CASCADE)

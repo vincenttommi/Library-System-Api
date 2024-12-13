@@ -198,9 +198,17 @@ class BookSerializer(serializers.ModelSerializer):
 
 
 
+
 class BorrowingSerializer(serializers.ModelSerializer):
     class Meta:
-        model =  Borrowing
-        fields  = ['book','user','date_borrowed','due_date']
+        model = Borrowing
+        fields = ["user", "book", "date_borrowed", "due_date"]
+
+    def validate(self, attrs):
+        book = attrs.get("book")
+        if not book.author:
+            raise serializers.ValidationError("Book must have an associated author.")
+        return attrs
+
         
         

@@ -13,6 +13,7 @@ from .permissions import IsAdmin
 from django.shortcuts import get_object_or_404
 from  rest_framework.permissions import IsAuthenticated
 from rest_framework import permissions, status
+import logging
 
 
 
@@ -231,51 +232,71 @@ class DeleteBook(APIView):
     
 
 
+
 class BorrowBook(APIView):
     permission_classes = [permissions.IsAuthenticated]
-    
+
     def post(self, request):
         book_id = request.data.get("bookId")
-        
-        # Checking if the book exists
+        if not book_id:
+            return Response(
+                {"status": 400, "message": "bookId is required."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # Validate book existence
         try:
             book = Book.objects.get(id=book_id)
         except Book.DoesNotExist:
-            return Response({"status": 400, "message": "Book not found."}, status=status.HTTP_400_BAD_REQUEST)
-        
-        date_borrowed = datetime.now().date()  # Sets the current date by default
-        
-        # Set the due date (7 days from the borrow date)
+            return Response(
+                {"status": 400, "message": "Book not found."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # Log the author field to see what's being returned
+        print(f"Book author: {book.author}")
+
+        # Ensure the book has an associated author (it should be an Author object)
+        if not book.author:
+            return Response(
+                {"status": 400, "message": "Book has no associated author."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # Borrowing logic
+        date_borrowed = datetime.now().date()
         due_date = date_borrowed + timedelta(days=7)
-        
-        # Creating the borrowing record with dynamic dates
+
         borrowing = Borrowing.objects.create(
-            user=request.user,
+            user=request.user,  # Using authenticated user
             book=book,
             date_borrowed=date_borrowed,
             due_date=due_date,
         )
-        
-        # Return the response
+
+        # Response data
         response_data = {
-            "status": 201,
-            "message": "Book borrowed successfully",
-            "data": {
-                "book": {
-                    "author": {
-                        "id": book.author.id,
-                        "name": book.author.name,
-                    },
-                    "genre": book.genre,
-                    "description": book.description,
-                    "createdAt": book.created_at,
-                },
-                "dateBorrow": borrowing.date_borrowed,
-                "borrowedBy": {
-                    "id": borrowing.user.id,
-                    "name": borrowing.user.name,
-                }
-            }
-        }
-        
+    "status": 201,
+    "message": "Book borrowed successfully",
+    "data": {
+        "book": {
+            "title": book.title,
+            "author": {
+                "name": book.author,  # Use the CharField value
+            },
+            "genre": book.genre,
+            "description": book.description,
+            "availability": book.availability,
+            "createdAt": book.created_at,
+        },
+        "dateBorrowed": borrowing.date_borrowed,
+        "dueDate": borrowing.due_date,
+        "borrowedBy": {
+            "id": request.user.id,
+            "name": getattr(request.user, "name", "Unknown"),
+        },
+    },
+}
+
         return Response(response_data, status=status.HTTP_201_CREATED)
+
