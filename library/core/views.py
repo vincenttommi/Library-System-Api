@@ -300,3 +300,60 @@ class BorrowBook(APIView):
 
         return Response(response_data, status=status.HTTP_201_CREATED)
 
+
+
+class ReturnBook(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request):
+        book_id = request.data.get("bookId")
+        if not book_id:
+            return Response(
+                {"status": 400, "message": "bookId is required."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # Check if book exists
+        try:
+            book = Book.objects.get(id=book_id)
+        except Book.DoesNotExist:
+            return Response(
+                {"status": 400, "message": "Book not found."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # Retrieve all borrowing records for the user and book
+        borrowings = Borrowing.objects.filter(
+            book=book, user=request.user, due_date__gte=datetime.now().date()
+        )
+
+        if not borrowings.exists():
+            return Response(
+                {"status": 400, "message": "You have not borrowed this book or it is already returned."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # Delete all borrowing records for this book by the user
+        borrowings.delete()
+
+        # Mark the book as available
+        book.availability = True
+        book.save()
+
+        # Response
+        response_data = {
+            "status": 201,
+            "message": "Book returned successfully",
+            "data": {
+                "title": book.title,
+                "author": {
+                    "name": book.author,
+                },
+                "genre": book.genre,
+                "description": book.description,
+                "availability": book.availability,
+            },
+        }
+
+        return Response(response_data, status=status.HTTP_201_CREATED)
+         
