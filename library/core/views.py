@@ -233,6 +233,75 @@ class DeleteBook(APIView):
 
 
 
+# class BorrowBook(APIView):
+#     permission_classes = [permissions.IsAuthenticated]
+
+#     def post(self, request):
+#         book_id = request.data.get("bookId")
+#         if not book_id:
+#             return Response(
+#                 {"status": 400, "message": "bookId is required."},
+#                 status=status.HTTP_400_BAD_REQUEST,
+#             )
+
+#         # Validate book existence
+#         try:
+#             book = Book.objects.get(id=book_id)
+#         except Book.DoesNotExist:
+#             return Response(
+#                 {"status": 400, "message": "Book not found."},
+#                 status=status.HTTP_400_BAD_REQUEST,
+#             )
+
+#         # # Log the author field to see what's being returned
+#         # print(f"Book author: {book.author}")
+
+#         # Ensure the book has an associated author (it should be an Author object)
+#         if not book.author:
+#             return Response(
+#                 {"status": 400, "message": "Book has no associated author."},
+#                 status=status.HTTP_400_BAD_REQUEST,
+#             )
+
+#         # Borrowing logic
+#         date_borrowed = datetime.now().date()
+#         due_date = date_borrowed + timedelta(days=7)
+
+#         borrowing = Borrowing.objects.create(
+#             user=request.user,  # Using authenticated user
+#             book=book,
+#             date_borrowed=date_borrowed,
+#             due_date=due_date,
+#         )
+
+#         # Response data
+#         response_data = {
+#     "status": 201,
+#     "message": "Book borrowed successfully",
+#     "data": {
+#         "book": {
+#             "title": book.title,
+#             "author": {
+#                 "name": book.author,  # Use the CharField value
+#             },
+#             "genre": book.genre,
+#             "description": book.description,
+#             "availability": book.availability,
+#             "createdAt": book.created_at,
+#         },
+#         "dateBorrowed": borrowing.date_borrowed,
+#         "dueDate": borrowing.due_date,
+#         "borrowedBy": {
+#             "id": request.user.id,
+#             "name": getattr(request.user, "name", "Unknown"),
+#         },
+#     },
+# }
+
+        return Response(response_data, status=status.HTTP_201_CREATED)
+
+
+
 class BorrowBook(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
@@ -253,13 +322,21 @@ class BorrowBook(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        # Log the author field to see what's being returned
-        print(f"Book author: {book.author}")
-
         # Ensure the book has an associated author (it should be an Author object)
         if not book.author:
             return Response(
                 {"status": 400, "message": "Book has no associated author."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # Check if the user has already borrowed the book and hasn't returned it yet
+        existing_borrowing = Borrowing.objects.filter(
+            book=book, user=request.user, due_date__gte=datetime.now().date()
+        ).exists()
+
+        if existing_borrowing:
+            return Response(
+                {"status": 400, "message": "You have already borrowed this book."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
@@ -274,31 +351,36 @@ class BorrowBook(APIView):
             due_date=due_date,
         )
 
+        # Mark the book as unavailable if needed
+        book.availability = False
+        book.save()
+
         # Response data
         response_data = {
-    "status": 201,
-    "message": "Book borrowed successfully",
-    "data": {
-        "book": {
-            "title": book.title,
-            "author": {
-                "name": book.author,  # Use the CharField value
+            "status": 201,
+            "message": "Book borrowed successfully",
+            "data": {
+                "book": {
+                    "title": book.title,
+                    "author": {
+                        "name": book.author,  # Use the CharField value
+                    },
+                    "genre": book.genre,
+                    "description": book.description,
+                    "availability": book.availability,
+                    "createdAt": book.created_at,
+                },
+                "dateBorrowed": borrowing.date_borrowed,
+                "dueDate": borrowing.due_date,
+                "borrowedBy": {
+                    "id": request.user.id,
+                    "name": getattr(request.user, "name", "Unknown"),
+                },
             },
-            "genre": book.genre,
-            "description": book.description,
-            "availability": book.availability,
-            "createdAt": book.created_at,
-        },
-        "dateBorrowed": borrowing.date_borrowed,
-        "dueDate": borrowing.due_date,
-        "borrowedBy": {
-            "id": request.user.id,
-            "name": getattr(request.user, "name", "Unknown"),
-        },
-    },
-}
+        }
 
         return Response(response_data, status=status.HTTP_201_CREATED)
+
 
 
 
